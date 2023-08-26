@@ -95,31 +95,31 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 
     [_HALMAK] = LAYOUT_split_3x5_3(
-        KC_W,    KC_L,    KC_R,            KC_B,             KC_Z,               KC_SCLN,              KC_Q,         KC_U,         KC_D,           KC_J,
-        KC_S,    KC_H,    KC_N,            KC_T,             KC_COMM,            KC_DOT,               KC_A,         KC_E,         KC_O,           KC_I,
-        KC_F,    KC_M,    KC_V,            KC_C,             KC_SLSH,            KC_G,                 KC_P,         KC_X,         KC_K,           KC_Y,
-                          TD(TD_ALT_WIN),  TD(OTHER_DANCE),  LCTL_T(KC_SPC),     LSFT_T(KC_ENT),       MO(2),        KC_ESC
+        KC_W,          KC_L,          KC_R,            KC_B,             KC_Z,               KC_SCLN,         KC_Q,         KC_U,         KC_D,           KC_J,
+        KC_S,          KC_H,          KC_N,            KC_T,             KC_COMM,            KC_DOT,          KC_A,         KC_E,         KC_O,           KC_I,
+        KC_F,          KC_M,          KC_V,            KC_C,             KC_SLSH,            KC_G,            KC_P,         KC_X,         KC_K,           KC_Y,
+                                      TD(TD_ALT_WIN),  TD(OTHER_DANCE),  LCTL_T(KC_SPC),     LSFT_T(KC_ENT),  TL_UPPR,      KC_BSPC
     ),
 
     [_LOWER] = LAYOUT_split_3x5_3(
-        KC_1,       KC_2,       KC_3,            KC_4,            KC_5,           KC_F1,         KC_F2,            KC_F3,            KC_F4,              KC_DEL,
-        KC_6,       KC_7,       KC_8,            KC_9,            KC_0,           KC_F5,         KC_F6,            KC_F7,            KC_F8,              KC_BSLS,
-        S(KC_NUHS), KC_NUBS,    S(KC_NUBS),      XXXXXXX,         KC_NUHS,        KC_TAB,        XXXXXXX,          XXXXXXX,          XXXXXXX,            XXXXXXX,
-                                KC_TRNS,         KC_TRNS,         KC_TRNS,        KC_TRNS,       KC_TRNS,          KC_TAB
+        KC_1,          KC_2,          KC_3,            KC_4,             KC_5,               KC_F1,           KC_F2,        KC_F3,            KC_F4,              KC_DEL,
+        KC_6,          KC_7,          KC_8,            KC_9,             KC_0,               KC_F5,           KC_F6,        KC_F7,            KC_F8,              XXXXXXX,
+        RALT(KC_4),    KC_NUBS,       KC_MINS,         KC_EQL,           KC_NUHS,            KC_F9,           KC_F10,       KC_F11,           KC_F12,             XXXXXXX,
+                                      KC_TRNS,         KC_TRNS,          KC_TRNS,            KC_TRNS,         KC_TRNS,      KC_TAB
     ),
 
     [_RAISE] = LAYOUT_split_3x5_3(
-        S(KC_1),   S(KC_2),        KC_LBRC,         KC_RBRC,      CK_TOGG,        KC_QUOT,    KC_UP,      S(KC_QUOT),     KC_HOME,     KC_PGUP,
-        KC_LEFT,  RALT_T(KC_DOWN), S(KC_9),         S(KC_0),      KC_LGUI,        KC_LEFT,    KC_DOWN,    KC_RIGHT,       KC_END,      KC_PGDN,
-        KC_MPRV,  KC_MSTP,         S(KC_LBRC),      S(KC_RBRC),   KC_PSCR,        XXXXXXX,    KC_KP_1,    KC_KP_2,        KC_KP_3,     KC_KP_0,
-                                   KC_TRNS,         KC_TRNS,      KC_TAB,         KC_TRNS,    KC_TRNS,    KC_TRNS
+        XXXXXXX,       XXXXXXX,       KC_LBRC,         KC_RBRC,          XXXXXXX,            KC_QUOT,         KC_UP,        S(KC_QUOT),     KC_HOME,     KC_PGUP,
+        KC_NUBS,       S(KC_NUBS),    S(KC_9),         S(KC_0),          XXXXXXX,            KC_LEFT,         KC_DOWN,      KC_RIGHT,       KC_END,      KC_PGDN,
+        S(KC_NUHS),    KC_NUHS,       S(KC_LBRC),      S(KC_RBRC),       XXXXXXX,            XXXXXXX,         XXXXXXX,      XXXXXXX,        XXXXXXX,     XXXXXXX,
+                                      KC_TRNS,         KC_TRNS,          KC_TRNS,            KC_TRNS,         KC_TRNS,      KC_ESC
     ),
 
     [_SUPER] = LAYOUT_split_3x5_3(
-        C(S(KC_ESC)),  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,      XXXXXXX,       XXXXXXX,        XXXXXXX,  XXXXXXX, C(A(KC_DEL)),
-        XXXXXXX,       XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,      C(G(KC_LEFT)), C(G(KC_RIGHT)), XXXXXXX,  XXXXXXX, XXXXXXX,
-        XXXXXXX,       XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,      C(S(KC_TAB)),  C(KC_TAB),      XXXXXXX,  XXXXXXX, XXXXXXX,
-                                 KC_TRNS,  KC_TRNS, KC_TRNS,       KC_TRNS,       KC_TRNS,        KC_TRNS
+        C(S(KC_ESC)),  XXXXXXX,       XXXXXXX,         XXXXXXX,          XXXXXXX,            KC_PSCR,         XXXXXXX,        XXXXXXX,  XXXXXXX, C(A(KC_DEL)),
+        XXXXXXX,       XXXXXXX,       XXXXXXX,         XXXXXXX,          XXXXXXX,            C(G(KC_LEFT)),   C(G(KC_RIGHT)), XXXXXXX,  XXXXXXX, XXXXXXX,
+        XXXXXXX,       XXXXXXX,       XXXXXXX,         XXXXXXX,          XXXXXXX,            C(S(KC_TAB)),    C(KC_TAB),      XXXXXXX,  XXXXXXX, XXXXXXX,
+                                      KC_TRNS,         KC_TRNS,          KC_TRNS,            KC_TRNS,         KC_TRNS,        KC_TRNS
     ),
 
 };
