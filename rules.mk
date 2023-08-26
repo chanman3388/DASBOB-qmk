@@ -23,3 +23,5 @@ WPM_ENABLE = yes
 LTO_ENABLE = yes
 SERIAL_DRIVER = vendor
 AUDIO_DRIVER = pwm_hardware
+TRI_LAYER_ENABLE = yes
+TAP_DANCE_ENABLE = yes
