@@ -58,8 +58,12 @@ static td_tap_t xtap_state = {
 void x_finished(tap_dance_state_t *state, void *user_data) {
     xtap_state.state = cur_dance(state);
     switch (xtap_state.state) {
-        case TD_SINGLE_TAP: register_code(KC_LGUI); break;
-        case TD_SINGLE_HOLD: layer_on(1); break;
+        case TD_SINGLE_TAP:
+            layer_on(1); 
+        case TD_SINGLE_HOLD:
+            layer_on(1);
+            update_try_layer(_LOWER, _RAISE, _SUPER);
+            break;
         case TD_DOUBLE_TAP: register_code(KC_LGUI); break;
         case TD_DOUBLE_HOLD: register_code(KC_LGUI); break;
         default: break;
@@ -68,8 +72,12 @@ void x_finished(tap_dance_state_t *state, void *user_data) {
 
 void x_reset(tap_dance_state_t *state, void *user_data) {
     switch (xtap_state.state) {
-        case TD_SINGLE_TAP: unregister_code(KC_LGUI); break;
-        case TD_SINGLE_HOLD: layer_off(1); break;
+        case TD_SINGLE_TAP:
+            layer_off(1);
+        case TD_SINGLE_HOLD:
+            layer_off(1);
+            update_trilayer(_LOWER, _RAISE, _SUPER);
+            break;
         case TD_DOUBLE_TAP: unregister_code(KC_LGUI); break;
         case TD_DOUBLE_HOLD: unregister_code(KC_LGUI); break;
         default: break;
