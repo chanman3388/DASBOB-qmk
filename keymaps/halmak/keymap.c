@@ -62,7 +62,7 @@ void x_finished(tap_dance_state_t *state, void *user_data) {
             layer_on(1); 
         case TD_SINGLE_HOLD:
             layer_on(1);
-            update_try_layer(_LOWER, _RAISE, _SUPER);
+            update_tri_layer(_LOWER, _RAISE, _SUPER);
             break;
         case TD_DOUBLE_TAP: register_code(KC_LGUI); break;
         case TD_DOUBLE_HOLD: register_code(KC_LGUI); break;
@@ -76,7 +76,7 @@ void x_reset(tap_dance_state_t *state, void *user_data) {
             layer_off(1);
         case TD_SINGLE_HOLD:
             layer_off(1);
-            update_trilayer(_LOWER, _RAISE, _SUPER);
+            update_tri_layer(_LOWER, _RAISE, _SUPER);
             break;
         case TD_DOUBLE_TAP: unregister_code(KC_LGUI); break;
         case TD_DOUBLE_HOLD: unregister_code(KC_LGUI); break;
