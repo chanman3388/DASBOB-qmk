@@ -11,8 +11,7 @@ typedef enum {
     TD_NONE,
     TD_UNKNOWN,
     TD_SINGLE_HOLD,
-    TD_DOUBLE_TAP,
-    TD_DOUBLE_HOLD,
+    TD_DOUBLE,
 } td_state_t;
 
 typedef struct {
@@ -39,8 +38,7 @@ td_state_t cur_dance(tap_dance_state_t *state) {
     if (state->count == 1) {
         return TD_SINGLE_HOLD;
     } else if (state->count == 2) {
-        if (state->pressed) return TD_DOUBLE_HOLD;
-        else return TD_DOUBLE_TAP;
+        return TD_DOUBLE;
     }
 
     return TD_UNKNOWN;
@@ -59,8 +57,7 @@ void x_finished(tap_dance_state_t *state, void *user_data) {
             layer_on(1);
             update_tri_layer(_LOWER, _RAISE, _SUPER);
             break;
-        case TD_DOUBLE_TAP: register_code(KC_LGUI); break;
-        case TD_DOUBLE_HOLD: register_code(KC_LGUI); break;
+        case TD_DOUBLE: register_code(KC_LGUI); break;
         default: break;
     }
 }
@@ -71,8 +68,7 @@ void x_reset(tap_dance_state_t *state, void *user_data) {
             layer_off(1);
             update_tri_layer(_LOWER, _RAISE, _SUPER);
             break;
-        case TD_DOUBLE_TAP: unregister_code(KC_LGUI); break;
-        case TD_DOUBLE_HOLD: unregister_code(KC_LGUI); break;
+        case TD_DOUBLE: unregister_code(KC_LGUI); break;
         default: break;
     }
     xtap_state.state = TD_NONE;
