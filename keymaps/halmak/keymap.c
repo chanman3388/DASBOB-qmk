@@ -10,7 +10,6 @@ enum dasbob_layers {
 typedef enum {
     TD_NONE,
     TD_UNKNOWN,
-    TD_SINGLE_TAP,
     TD_SINGLE_HOLD,
     TD_DOUBLE_TAP,
     TD_DOUBLE_HOLD,
@@ -38,8 +37,6 @@ tap_dance_action_t tap_dance_actions[] = {
 
 td_state_t cur_dance(tap_dance_state_t *state) {
     if (state->count == 1) {
-        if (state->interrupted || !state->pressed) return TD_SINGLE_TAP;
-        // Key has not been interrupted, but the key is still held. Means you want to send a 'HOLD'.
         else return TD_SINGLE_HOLD;
     } else if (state->count == 2) {
         if (state->pressed) return TD_DOUBLE_HOLD;
@@ -58,8 +55,6 @@ static td_tap_t xtap_state = {
 void x_finished(tap_dance_state_t *state, void *user_data) {
     xtap_state.state = cur_dance(state);
     switch (xtap_state.state) {
-        case TD_SINGLE_TAP:
-            layer_on(1); 
         case TD_SINGLE_HOLD:
             layer_on(1);
             update_tri_layer(_LOWER, _RAISE, _SUPER);
@@ -72,8 +67,6 @@ void x_finished(tap_dance_state_t *state, void *user_data) {
 
 void x_reset(tap_dance_state_t *state, void *user_data) {
     switch (xtap_state.state) {
-        case TD_SINGLE_TAP:
-            layer_off(1);
         case TD_SINGLE_HOLD:
             layer_off(1);
             update_tri_layer(_LOWER, _RAISE, _SUPER);
