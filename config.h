@@ -51,6 +51,7 @@
 // The default is 40
 #define MOUSEKEY_WHEEL_TIME_TO_MAX 100
 
+#define OLED_BRIGHTNESS 200
 // Pick good defaults for enabling homerow modifiers
 #define TAPPING_TERM 200
 #define TAPPING_TERM_PER_KEY

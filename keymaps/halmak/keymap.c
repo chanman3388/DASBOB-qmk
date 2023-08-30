@@ -21,57 +21,91 @@ typedef struct {
 
 enum {
     TD_ALT_WIN,
-    OTHER_DANCE,
+    L1_SHFT,
+    L2_SHFT,
 };
 
 td_state_t cur_dance(tap_dance_state_t *state);
 
-void x_finished(tap_dance_state_t *state, void *user_data);
-void x_reset(tap_dance_state_t *state, void *user_data);
+void l1_finished(tap_dance_state_t *state, void *user_data);
+void l1_reset(tap_dance_state_t *state, void *user_data);
+void l2_finished(tap_dance_state_t *state, void *user_data);
+void l2_reset(tap_dance_state_t *state, void *user_data);
 
 tap_dance_action_t tap_dance_actions[] = {
     [TD_ALT_WIN] = ACTION_TAP_DANCE_DOUBLE(KC_LALT, KC_LGUI),
-    [OTHER_DANCE] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, x_finished, x_reset),
+    [L1_SHFT] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, l1_finished, l1_reset),
+    [L2_SHFT] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, l2_finished, l2_reset),
 };
 
 td_state_t cur_dance(tap_dance_state_t *state) {
     if (state->count == 1) {
         return TD_SINGLE_HOLD;
-    } else if (state->count == 2) {
+    } else {
         return TD_DOUBLE;
     }
 
     return TD_UNKNOWN;
 }
 
-// Create an instance of 'td_tap_t' for the 'x' tap dance.
-static td_tap_t xtap_state = {
+// Create an instance of 'td_tap_t' for the 'l1' tap dance.
+static td_tap_t l1_tap_state = {
     .is_press_action = true,
     .state = TD_NONE
 };
 
-void x_finished(tap_dance_state_t *state, void *user_data) {
-    xtap_state.state = cur_dance(state);
-    switch (xtap_state.state) {
+// Create an instance of 'td_tap_t' for the 'l2' tap dance.
+static td_tap_t l2_tap_state = {
+    .is_press_action = true,
+    .state = TD_NONE
+};
+
+void l1_finished(tap_dance_state_t *state, void *user_data) {
+    l1_tap_state.state = cur_dance(state);
+    switch (l1_tap_state.state) {
         case TD_SINGLE_HOLD:
             layer_on(1);
             update_tri_layer(_LOWER, _RAISE, _SUPER);
             break;
-        case TD_DOUBLE: register_code(KC_LGUI); break;
+        case TD_DOUBLE: register_code(KC_LSFT); break;
         default: break;
     }
 }
 
-void x_reset(tap_dance_state_t *state, void *user_data) {
-    switch (xtap_state.state) {
+void l1_reset(tap_dance_state_t *state, void *user_data) {
+    switch (l1_tap_state.state) {
         case TD_SINGLE_HOLD:
             layer_off(1);
             update_tri_layer(_LOWER, _RAISE, _SUPER);
             break;
-        case TD_DOUBLE: unregister_code(KC_LGUI); break;
+        case TD_DOUBLE: unregister_code(KC_LSFT); break;
         default: break;
     }
-    xtap_state.state = TD_NONE;
+    l1_tap_state.state = TD_NONE;
+}
+
+void l2_finished(tap_dance_state_t *state, void *user_data) {
+    l2_tap_state.state = cur_dance(state);
+    switch (l2_tap_state.state) {
+        case TD_SINGLE_HOLD:
+            layer_on(2);
+            update_tri_layer(_LOWER, _RAISE, _SUPER);
+            break;
+        case TD_DOUBLE: register_code(KC_LSFT); break;
+        default: break;
+    }
+}
+
+void l2_reset(tap_dance_state_t *state, void *user_data) {
+    switch (l2_tap_state.state) {
+        case TD_SINGLE_HOLD:
+            layer_off(2);
+            update_tri_layer(_LOWER, _RAISE, _SUPER);
+            break;
+        case TD_DOUBLE: unregister_code(KC_LSFT); break;
+        default: break;
+    }
+    l2_tap_state.state = TD_NONE;
 }
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -95,7 +129,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_W,          KC_L,          KC_R,            KC_B,             KC_Z,               KC_SCLN,         KC_Q,         KC_U,         KC_D,           KC_J,
         KC_S,          KC_H,          KC_N,            KC_T,             KC_COMM,            KC_DOT,          KC_A,         KC_E,         KC_O,           KC_I,
         KC_F,          KC_M,          KC_V,            KC_C,             KC_SLSH,            KC_G,            KC_P,         KC_X,         KC_K,           KC_Y,
-                                      TD(TD_ALT_WIN),  TD(OTHER_DANCE),  LCTL_T(KC_SPC),     LSFT_T(KC_ENT),  TL_UPPR,      KC_BSPC
+                                      TD(TD_ALT_WIN),  TD(L1_SHFT),      LCTL_T(KC_SPC),     LSFT_T(KC_ENT),  TD(L2_SHFT),  KC_BSPC
     ),
 
     [_LOWER] = LAYOUT_split_3x5_3(
@@ -122,9 +156,85 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 #ifdef OLED_ENABLE
 
-oled_rotation_t oled_init_user(oled_rotation_t rotation) { return OLED_ROTATION_0; }
+#define TEXT_MOVE_TIMEOUT 500
+#define OLED_ROW_START 6
+#define OLED_WRITEABLE_WIDTH 15
+#define BUFF_LEN 16
+
+static const char quote[] = "Behind every cloud is a Bitcoin miner...";
+static uint8_t QUOTE_LEN = 40;  // quote lendth without null terminator
+
+char buff[BUFF_LEN];
+
+static uint16_t anim_timer = 0;
+
+typedef struct {
+    uint8_t start_idx;
+    uint8_t end_idx;
+    uint8_t quote_len;
+} quote_state;
+
+static quote_state oled_quote_state = {
+    0,
+    0,
+    0,
+};
+
+void render_text(void) {
+    uint8_t end, i;
+    if (oled_quote_state.end_idx <= oled_quote_state.quote_len) {
+        end = OLED_WRITEABLE_WIDTH;
+    } else {
+        end = oled_quote_state.end_idx - oled_quote_state.start_idx;        
+    }
+    for (i = 0; i < end; i++) {
+        buff[i] = quote[oled_quote_state.start_idx + i];
+    }
+    if (end < OLED_WRITEABLE_WIDTH) {
+        for (i = end; i < OLED_WRITEABLE_WIDTH; i++) {
+            buff[i] = ' ';
+        }
+    }
+    oled_set_cursor(OLED_ROW_START, 3);
+    oled_write_P(PSTR(buff), false);
+    oled_quote_state.start_idx++;
+    oled_quote_state.end_idx++;
+    if (oled_quote_state.end_idx > oled_quote_state.quote_len) {
+        oled_quote_state.end_idx = oled_quote_state.quote_len;
+    }
+    if (oled_quote_state.start_idx == oled_quote_state.end_idx) {
+        oled_quote_state.start_idx = 0;
+        oled_quote_state.end_idx = OLED_WRITEABLE_WIDTH;
+    }
+}
+
+oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+    anim_timer = timer_read();
+    // buff = malloc(OLED_WRITEABLE_WIDTH + 1);
+    buff[OLED_WRITEABLE_WIDTH] = '\0';
+    oled_quote_state.quote_len = QUOTE_LEN;
+    oled_quote_state.start_idx = 0;
+    oled_quote_state.end_idx = OLED_WRITEABLE_WIDTH;
+    render_text();
+    return OLED_ROTATION_0;
+}
 bool oled_task_user(void) {
     if (is_keyboard_master()) {
+        // static const char PROGMEM runqmk_logo[] = {0,0,0,0,152,152,152,152,152,152,24,24,24,
+        // 152,152,24,24,24,152,152,24,24,152,152,24,24,24,152,152,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        // 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        // 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        // 0,0,0,0,0,127,127,13,13,29,63,103,64,0,63,127,96,96,96,127,63,0,0,127,127,7,12,56,
+        // 127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        // 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        // 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,252,134,198,198,252,120,0,0,254,254,
+        // 60,224,224,60,254,254,0,254,254,16,24,124,230,130,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        // 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        // 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        // 0,0,24,24,25,25,25,25,27,24,24,25,25,24,25,25,24,25,25,24,25,25,24,24,24,24,25,0,0,0,
+        // 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        // 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        // 0,0,0,0,0,0,0,0,0,0};
         static const char PROGMEM runqmk_logo[] = {0,0,0,0,152,152,152,152,152,152,24,24,24,
         152,152,24,24,24,152,152,24,24,152,152,24,24,24,152,152,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -136,41 +246,40 @@ bool oled_task_user(void) {
         60,224,224,60,254,254,0,254,254,16,24,124,230,130,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        0,0,24,24,25,25,25,25,27,24,24,25,25,24,25,25,24,25,25,24,25,25,24,24,24,24,25,0,0,0,
-        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,0,0};
+        0,0,24,24,25,25,25,25,27,24,24,25,25,24,25,25,24,25,25,24,25,25,24,24,24,24,25,0,0,0};
 
 
         oled_write_raw_P(runqmk_logo, sizeof(runqmk_logo));
 
-        led_t led_usb_state = host_keyboard_led_state();
-        oled_set_cursor(6, 3);
-        oled_write_P(led_usb_state.num_lock    ? PSTR("NUM") : PSTR(""), false);
-        oled_set_cursor(6, 2);
+        // time for the next frame?
+        if (timer_elapsed(anim_timer) > TEXT_MOVE_TIMEOUT) {
+            anim_timer = timer_read();
+            render_text();
+        }
+        oled_set_cursor(OLED_ROW_START, 2);
         oled_write_P(PSTR("WPM: "), false);
         oled_write(get_u8_str(get_current_wpm(), '0'), false);
-        oled_set_cursor(6, 0);
+        oled_set_cursor(OLED_ROW_START, 0);
         oled_write_P(PSTR("by GroooveBob"), false);
-            oled_set_cursor(6, 1);
+            oled_set_cursor(OLED_ROW_START, 1);
             oled_write_P(PSTR("Layer: "), false);
 
     switch (get_highest_layer(layer_state)) {
         case _HALMAK:
         oled_set_cursor(12, 1);
-            oled_write_P(PSTR("Default\n"), false);
+            oled_write_P(PSTR("halmak\n"), false);
             break;
         case _LOWER:
         oled_set_cursor(12, 1);
-            oled_write_P(PSTR("Lower\n"), false);
+            oled_write_P(PSTR("lower\n"), false);
             break;
         case _RAISE:
         oled_set_cursor(12, 1);
-            oled_write_P(PSTR("Raise\n"), false);
+            oled_write_P(PSTR("raise\n"), false);
             break;
         case _SUPER:
         oled_set_cursor(12, 1);
-            oled_write_P(PSTR("Raise\n"), false);
+            oled_write_P(PSTR("super\n"), false);
             break;
         default:
             // Or use the write_ln shortcut over adding '\n' to the end of your string
