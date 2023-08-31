@@ -22,7 +22,7 @@ typedef struct {
 enum {
     TD_ALT_WIN,
     L1_SHFT,
-    L2_SHFT,
+    L2_CTRL,
 };
 
 td_state_t cur_dance(tap_dance_state_t *state);
@@ -35,7 +35,7 @@ void l2_reset(tap_dance_state_t *state, void *user_data);
 tap_dance_action_t tap_dance_actions[] = {
     [TD_ALT_WIN] = ACTION_TAP_DANCE_DOUBLE(KC_LALT, KC_LGUI),
     [L1_SHFT] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, l1_finished, l1_reset),
-    [L2_SHFT] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, l2_finished, l2_reset),
+    [L2_CTRL] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, l2_finished, l2_reset),
 };
 
 td_state_t cur_dance(tap_dance_state_t *state) {
@@ -91,7 +91,7 @@ void l2_finished(tap_dance_state_t *state, void *user_data) {
             layer_on(2);
             update_tri_layer(_LOWER, _RAISE, _SUPER);
             break;
-        case TD_DOUBLE: register_code(KC_LSFT); break;
+        case TD_DOUBLE: register_code(KC_LCTL); break;
         default: break;
     }
 }
@@ -102,7 +102,7 @@ void l2_reset(tap_dance_state_t *state, void *user_data) {
             layer_off(2);
             update_tri_layer(_LOWER, _RAISE, _SUPER);
             break;
-        case TD_DOUBLE: unregister_code(KC_LSFT); break;
+        case TD_DOUBLE: unregister_code(KC_LCTL); break;
         default: break;
     }
     l2_tap_state.state = TD_NONE;
@@ -129,7 +129,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_W,          KC_L,          KC_R,            KC_B,             KC_Z,               KC_SCLN,         KC_Q,         KC_U,         KC_D,           KC_J,
         KC_S,          KC_H,          KC_N,            KC_T,             KC_COMM,            KC_DOT,          KC_A,         KC_E,         KC_O,           KC_I,
         KC_F,          KC_M,          KC_V,            KC_C,             KC_SLSH,            KC_G,            KC_P,         KC_X,         KC_K,           KC_Y,
-                                      TD(TD_ALT_WIN),  TD(L1_SHFT),      LCTL_T(KC_SPC),     LSFT_T(KC_ENT),  TD(L2_SHFT),  KC_BSPC
+                                      TD(TD_ALT_WIN),  TD(L1_SHFT),      LCTL_T(KC_SPC),     LSFT_T(KC_ENT),  TD(L2_CTRL),  KC_BSPC
     ),
 
     [_LOWER] = LAYOUT_split_3x5_3(
@@ -147,9 +147,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 
     [_SUPER] = LAYOUT_split_3x5_3(
-        C(S(KC_ESC)),  XXXXXXX,       XXXXXXX,         XXXXXXX,          XXXXXXX,            KC_PSCR,         XXXXXXX,        XXXXXXX,  XXXXXXX, C(A(KC_DEL)),
-        XXXXXXX,       XXXXXXX,       XXXXXXX,         XXXXXXX,          XXXXXXX,            C(G(KC_LEFT)),   C(G(KC_RIGHT)), XXXXXXX,  XXXXXXX, XXXXXXX,
-        XXXXXXX,       XXXXXXX,       XXXXXXX,         XXXXXXX,          XXXXXXX,            C(S(KC_TAB)),    C(KC_TAB),      XXXXXXX,  XXXXXXX, XXXXXXX,
+        C(S(KC_ESC)),  XXXXXXX,       XXXXXXX,         XXXXXXX,          XXXXXXX,            KC_PSCR,         XXXXXXX,        XXXXXXX,          XXXXXXX, C(A(KC_DEL)),
+        XXXXXXX,       XXXXXXX,       A(S(KC_TAB)),    A(KC_TAB),        XXXXXXX,            XXXXXXX,         C(G(KC_LEFT)),  C(G(KC_RIGHT)),   XXXXXXX, XXXXXXX,
+        XXXXXXX,       XXXXXXX,       C(S(KC_TAB)),    C(KC_TAB),        XXXXXXX,            XXXXXXX,         C(S(KC_TAB)),   C(KC_TAB),        XXXXXXX, XXXXXXX,
                                       KC_TRNS,         KC_TRNS,          KC_TRNS,            KC_TRNS,         KC_TRNS,        KC_TRNS
     ),
 
@@ -234,7 +234,7 @@ bool oled_task_user(void) {
         // 0,0,24,24,25,25,25,25,27,24,24,25,25,24,25,25,24,25,25,24,25,25,24,24,24,24,25,0,0,0,
         // 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         // 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        // 0,0,0,0,0,0,0,0,0,0};
+        // 0,0,0,0,0,0,0,0,0,0}; // 512  128 x 4
         static const char PROGMEM runqmk_logo[] = {0,0,0,0,152,152,152,152,152,152,24,24,24,
         152,152,24,24,24,152,152,24,24,152,152,24,24,24,152,152,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -247,7 +247,6 @@ bool oled_task_user(void) {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,24,24,25,25,25,25,27,24,24,25,25,24,25,25,24,25,25,24,25,25,24,24,24,24,25,0,0,0};
-
 
         oled_write_raw_P(runqmk_logo, sizeof(runqmk_logo));
 
