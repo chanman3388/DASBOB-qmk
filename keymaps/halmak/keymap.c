@@ -156,13 +156,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 #ifdef OLED_ENABLE
 
-#define TEXT_MOVE_TIMEOUT 500
+#define TEXT_MOVE_TIMEOUT 250
 #define OLED_ROW_START 6
 #define OLED_WRITEABLE_WIDTH 15
 #define BUFF_LEN 16
+#define START_COUNT 6
+#define END_COUNT 4
+#define NUM_QUOTES 3
 
-static const char quote[] = "Behind every cloud is a Bitcoin miner...";
-static uint8_t QUOTE_LEN = 40;  // quote lendth without null terminator
+static const char *quotes[] = {
+    "Behind every cloud is a Bitcoin miner...",
+    "Jono's mum's a nice lady!",
+    "You miss every shot you don't take",
+};
+static uint8_t quote_len[] = {40, 25, 34};  // quote lendth without null terminator
 
 char buff[BUFF_LEN];
 
@@ -171,10 +178,12 @@ static uint16_t anim_timer = 0;
 typedef struct {
     uint8_t start_idx;
     uint8_t end_idx;
-    uint8_t quote_len;
+    uint8_t quote_id;
+    uint8_t counter;
 } quote_state;
 
 static quote_state oled_quote_state = {
+    0,
     0,
     0,
     0,
@@ -182,37 +191,54 @@ static quote_state oled_quote_state = {
 
 void render_text(void) {
     uint8_t end, i;
-    if (oled_quote_state.end_idx <= oled_quote_state.quote_len) {
+    if (oled_quote_state.start_idx >= quote_len[oled_quote_state.quote_id] && oled_quote_state.counter > 1) goto check_end;
+    if (oled_quote_state.end_idx < quote_len[oled_quote_state.quote_id]) {
         end = OLED_WRITEABLE_WIDTH;
     } else {
-        end = oled_quote_state.end_idx - oled_quote_state.start_idx;        
+        end = quote_len[oled_quote_state.quote_id] - oled_quote_state.start_idx;        
     }
-    for (i = 0; i < end; i++) {
-        buff[i] = quote[oled_quote_state.start_idx + i];
-    }
+    for (i = 0; i < end; i++) buff[i] = quotes[oled_quote_state.quote_id][oled_quote_state.start_idx + i];
     if (end < OLED_WRITEABLE_WIDTH) {
-        for (i = end; i < OLED_WRITEABLE_WIDTH; i++) {
-            buff[i] = ' ';
+        for (i = end; i < OLED_WRITEABLE_WIDTH; i++) buff[i] = ' ';
+    }
+    if (end == 0) {
+        for (i = 0; i < OLED_WRITEABLE_WIDTH; i++) buff[i] = ' ';
+    }
+    if (oled_quote_state.counter == 0 || end == 0) {
+        oled_set_cursor(OLED_ROW_START, 3);
+        oled_write_P(PSTR(buff), false);
+    }
+    if (oled_quote_state.start_idx == 0) {
+        if (oled_quote_state.counter < START_COUNT) {
+            oled_quote_state.counter++;
+            goto skip;
+        } else {
+            oled_quote_state.counter = 0;
         }
     }
-    oled_set_cursor(OLED_ROW_START, 3);
-    oled_write_P(PSTR(buff), false);
     oled_quote_state.start_idx++;
     oled_quote_state.end_idx++;
-    if (oled_quote_state.end_idx > oled_quote_state.quote_len) {
-        oled_quote_state.end_idx = oled_quote_state.quote_len;
-    }
-    if (oled_quote_state.start_idx == oled_quote_state.end_idx) {
+    if (oled_quote_state.start_idx >= quote_len[oled_quote_state.quote_id]) {
+    check_end:
+        oled_quote_state.counter++;
+        if (oled_quote_state.counter <= END_COUNT) {
+            goto skip;
+        }
+        oled_quote_state.counter = 0;
         oled_quote_state.start_idx = 0;
         oled_quote_state.end_idx = OLED_WRITEABLE_WIDTH;
+        oled_quote_state.quote_id++;
+        if (oled_quote_state.quote_id == NUM_QUOTES) {
+            oled_quote_state.quote_id = 0;
+        }
     }
+skip:
+    return;
 }
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
     anim_timer = timer_read();
-    // buff = malloc(OLED_WRITEABLE_WIDTH + 1);
     buff[OLED_WRITEABLE_WIDTH] = '\0';
-    oled_quote_state.quote_len = QUOTE_LEN;
     oled_quote_state.start_idx = 0;
     oled_quote_state.end_idx = OLED_WRITEABLE_WIDTH;
     render_text();
