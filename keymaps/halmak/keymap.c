@@ -170,14 +170,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 #define BUFF_LEN 16
 #define START_COUNT 6
 #define END_COUNT 4
-#define NUM_QUOTES 3
+#define NUM_QUOTES 4
 
 static const char *quotes[] = {
     "Behind every cloud is a Bitcoin miner...",
     "Jono's mum's a nice lady!",
     "You miss every shot you don't take",
+    "I'm quite a fan of this sausage"
 };
-static uint8_t quote_len[] = {40, 25, 34};  // quote lendth without null terminator
+static uint8_t quote_len[] = {40, 25, 34, 31};  // quote lendth without null terminator
 
 char buff[BUFF_LEN];
 
